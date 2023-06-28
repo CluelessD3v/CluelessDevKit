@@ -1,4 +1,4 @@
-local function GetValueWeighted(weightsList: { [any]: number })
+local function WeightedChoice(weightsList: { [any]: number })
 	local sumOfAllWeights = 0
 	for _, weight in weightsList do
 		sumOfAllWeights += weight
@@ -15,4 +15,4 @@ local function GetValueWeighted(weightsList: { [any]: number })
 	end
 end
 
-return GetValueWeighted
+return WeightedChoice
