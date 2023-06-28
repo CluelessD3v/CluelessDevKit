@@ -1,11 +1,7 @@
 -- stylua: ignore start
 
 --[[
-    Utility class to make "Observable" values, I reccommend it's used for primitive data types, i.e: 
-    string, number, bool; Or non Instance Data types, i.e: Vector3, Vector2, BrickColor.
-
-    !NOTE: Value type IS NOT ENFORCED, Changing the value type at runtime (String -> number) is allowed 
-    !BUT NOT recommended! 
+	Observable value utility for when you need to keep an eye on a value changing.
 ]]
 
 -- !== ================================================================================||>

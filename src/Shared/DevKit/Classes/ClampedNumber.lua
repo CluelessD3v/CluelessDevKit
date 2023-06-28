@@ -1,4 +1,9 @@
 -- stylua: ignore start
+--[=[
+	Clamped number class for when you need to keep a number between a range and not
+	litter your codebase with clamped values
+]=]
+
 
 local warnMsg =
 	"No signal dependency detected, The module will not be useable until its signal dependency is set: ClampedNumer.Signal = YourSignalLibrary"
@@ -92,6 +97,8 @@ ClampedNumber.new = function(initialValue: number, minValue: number, maxValue: n
 
 
 	local self = {}
+	-- Prevent min from being bigger than max and vice versa at creation by
+	-- swapping them
 	self.Min        = math.min(minValue, maxValue) 
 	self.Max        = math.max(minValue, maxValue)
 	self.Value      = math.clamp(initialValue, self.Min, self.Max)
