@@ -1,16 +1,21 @@
+local UserInputService = game:GetService("UserInputService")
 local Camera = workspace.CurrentCamera
-local Mouse = game:GetService("Players").LocalPlayer:GetMouse()
 
 local RaycastFromMouse = {}
 
 RaycastFromMouse.FromViewportPoint = function(distance, raycastParams): RaycastResult
-	local unitRay: Ray = Camera:ViewportPointToRay(Mouse.X, Mouse.Y)
+	local mousePos = UserInputService:GetMouseLocation()
+	local unitRay: Ray = Camera:ViewportPointToRay(mousePos.X, mousePos.Y)
 	local rayCastResult = workspace:Raycast(unitRay.Origin, unitRay.Direction * distance, raycastParams)
 	return rayCastResult
 end
 
+-- screenPointToRay accounts for the guiInset so the positions it returns will
+-- always be 32 pixels lower than where your mouse actually is
+
 RaycastFromMouse.FromScreenPoint = function(distance, raycastParams): RaycastResult
-	local unitRay: Ray = Camera:ScreenPointToRay(Mouse.X, Mouse.Y)
+	local mousePos = UserInputService:GetMouseLocation()
+	local unitRay: Ray = Camera:ScreenPointToRay(mousePos.X, mousePos.Y)
 	local rayCastResult = workspace:Raycast(unitRay.Origin, unitRay.Direction * distance, raycastParams)
 	return rayCastResult
 end
