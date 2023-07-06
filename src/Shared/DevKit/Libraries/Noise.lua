@@ -9,39 +9,49 @@
         
 ]=]
 
+-- stylua: ignore start
+
 local Noise = {}
 
 Noise.FBM = function(x, z, seed, amplitude, frequency, octaves, persistence, lacunarity, gain, scale)
 	local result = 0
 	for _ = 1, octaves do
-		result = (
-			result
-			+ (amplitude * math.noise(((x + seed) / frequency) * persistence, ((z + seed) / frequency) * persistence))
-		)
+		result = (result + (amplitude * math.noise(((x + seed) / frequency) * persistence, ((z + seed) / frequency) * persistence)))
 		frequency = (frequency * lacunarity)
 		amplitude = (amplitude * gain)
 	end
 
 	return result * scale
 end
+
+Noise.Turbulence = function(x, z, seed, amplitude, frequency, octaves, persistence, lacunarity, gain, scale)
+	local result = 0
+	for _ = 1, octaves do
+		result += amplitude * math.abs(math.noise(((x + seed) / frequency) * persistence, ((z + seed) / frequency) * persistence))
+		frequency = (frequency * lacunarity)
+		amplitude = (amplitude * gain)
+	end
+
+	return result * scale
+end
+
 
 Noise.Ridge = function(x, z, seed, amplitude, frequency, octaves, persistence, lacunarity, gain, scale)
 	local result = 0
 	for _ = 1, octaves do
-		result = (
-			result
-			+ (
-				amplitude
-				* math.abs(math.noise(((x + seed) / frequency) * persistence, ((z + seed) / frequency) * persistence))
-			)
-		)
+		result += amplitude * math.abs(math.noise(((x + seed) / frequency) * persistence, ((z + seed) / frequency) * persistence))
 		frequency = (frequency * lacunarity)
 		amplitude = (amplitude * gain)
-		x *= 2
-		z *= 2
 	end
 
-	return result * scale
+	result *= scale
+	
+	result = math.abs(result)
+	result = 1 - result
+	result *= result
+
+	return result 
 end
 
 return Noise
+-- stylua: ignore end

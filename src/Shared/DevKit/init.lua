@@ -12,13 +12,14 @@ DevKit.Classes = {
 }
 
 DevKit.Functions = {
-	Color3Lerp           = require(Functions.Color3Lerp),
-	GetSimpleID          = require(Functions.GetSimpleID),
-	ScaleValuesToRange   = require(Functions.ScaleValuesToRange),
-	TableToString        = require(Functions.TableToString),
-	TranslateLinearIndex = require(Functions.TranslateLinearIndex),
-	Vec3ToVec3i16        = require(Functions.V3ToV3i16),
-	WeightedChoice       = require(Functions.WeightedChoice),
+	Color3Lerp             = require(Functions.Color3Lerp),
+	GetSimpleID            = require(Functions.GetSimpleID),
+	ScaleValuesToRange     = require(Functions.ScaleValuesToRange),
+	TableToString          = require(Functions.TableToString),
+	TranslateLinearIndex   = require(Functions.TranslateLinearIndex),
+	Vec3ToVec3i16          = require(Functions.V3ToV3i16),
+	WeightedChoice         = require(Functions.WeightedChoice),
+	SetPreviewCameraCFrame = require(Functions.SetPreviewCameraCFrame),
 }
 
 DevKit.Libraries = {
