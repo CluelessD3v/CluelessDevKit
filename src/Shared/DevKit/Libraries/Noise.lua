@@ -43,3 +43,5 @@ Noise.Ridge = function(x, z, seed, amplitude, frequency, octaves, persistence, l
 
 	return result * scale
 end
+
+return Noise
