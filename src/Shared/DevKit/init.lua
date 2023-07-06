@@ -29,3 +29,5 @@ DevKit.Libraries = {
 	SetOperations    = require(Libraries.SetOperations),
 }
 -- stylua: ignore end
+
+return DevKit
