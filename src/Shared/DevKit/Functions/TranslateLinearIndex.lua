@@ -14,9 +14,9 @@
     to a matrix/tensor.
 ]=]
 
-local function TranslateLinearIndex(index, maxSize)
-	local row = math.floor((c - 1) / maxSize) + 1
-	local column = (c - 1) % maxSize + 1
+local function TranslateLinearIndex(index, maxSize): (number, number)
+	local row = math.floor((index - 1) / maxSize) + 1
+	local column = (index - 1) % maxSize + 1
 	return row, column
 end
 
