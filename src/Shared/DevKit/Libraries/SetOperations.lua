@@ -33,27 +33,14 @@ module.Array.Union = function(a, b)
 end
 
 module.Array.Intersect = function(a, b)
-	local insersect = {}
+	local intersection = {}
 	for _, v in a do
 		if table.find(v, b) then
-			table.insert(insersect, v)
+			table.insert(intersection, v)
 		end
 	end
 
-	return insersect
-end
-
-module.Array.Difference = function(a, b)
-	local difference = {}
-	for _, v in a do
-		if table.find(v, b) then
-			continue
-		end
-
-		table.insert(difference, v)
-	end
-
-	return difference
+	return intersection
 end
 
 module.Array.Difference = function(a, b)
@@ -89,27 +76,27 @@ module.Dictionary.Union = function(a, b)
 end
 
 module.Dictionary.Intersect = function(a, b)
-	local insersect = {}
+	local intersection = {}
 	for _, v in a do
 		if b[v] then
-			insersect[v] = true
+			intersection[v] = true
 		end
 	end
 
-	return insersect
+	return intersection
 end
 
 module.Dictionary.Difference = function(a, b)
-	local insersect = {}
+	local difference = {}
 	for _, v in a do
 		if b[v] then
 			continue
 		end
 
-		insersect[v] = true
+		difference[v] = true
 	end
 
-	return insersect
+	return difference
 end
 
 return module
