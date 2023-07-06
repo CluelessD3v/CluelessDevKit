@@ -67,21 +67,21 @@ type Connection = {
 
 
 type Signal<U...> = {
-	Connect: (self: Signal<U...>, handle:(U...) -> nil) -> Connection, 
-	Once: (self: Signal<U...>, U...) -> Connection,
-	DisconnectAll: (self: Signal<U...>) -> nil,
-	Fire: (self: Signal<U...>, U...) -> nil,
-	Wait: (self: Signal<U...>) -> U...,
+	Connect       : (self: Signal<U...>, handle:(U...) -> nil) -> Connection,
+	Once          : (self: Signal<U...>, U...) -> Connection,
+	DisconnectAll : (self: Signal<U...>) -> nil,
+	Fire          : (self: Signal<U...>, U...) -> nil,
+	Wait          : (self: Signal<U...>) -> U...,
 }
 
 
 export type ClampedNumber = {
-	Value: number,
-	Max: number,
-	Min: number,
-	Changed: Signal<number>,
-	MinReached: Signal<any>,
-	MaxReached: Signal<any>,
+	Value      : number,
+	Max        : number,
+	Min        : number,
+	Changed    : Signal<number>,
+	MinReached : Signal<unknown>,
+	MaxReached : Signal<unknown>,
 }
 
 

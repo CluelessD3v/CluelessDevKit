@@ -53,8 +53,6 @@ export type Observable = {
 }
 
 
-
-
 local warnMsg =
 	"No signal dependency detected, The module will not be useable until its signal dependency is set: Observable.Signal = YourSignalLibrary"
 
