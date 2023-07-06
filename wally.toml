@@ -5,6 +5,6 @@ registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
 [dependencies]
-signal = "stravant/goodsignal@0.2.1"
+signal = "sleitnick/signal@1.5.0"
 trove = "sleitnick/trove@0.5.0"
-rbxtooltip = "solarscuffle-bot/rbxtooltip@1.3.0"
+
