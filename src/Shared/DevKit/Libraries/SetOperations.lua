@@ -64,11 +64,11 @@ module.Dictionary = {}
 module.Dictionary.Union = function(a, b)
 	local union = {}
 
-	for _, v in a do
+	for v in a do
 		union[v] = true
 	end
 
-	for _, v in b do
+	for v in b do
 		union[v] = true
 	end
 
@@ -77,7 +77,7 @@ end
 
 module.Dictionary.Intersect = function(a, b)
 	local intersection = {}
-	for _, v in a do
+	for v in a do
 		if b[v] then
 			intersection[v] = true
 		end
@@ -88,7 +88,7 @@ end
 
 module.Dictionary.Difference = function(a, b)
 	local difference = {}
-	for _, v in a do
+	for v in a do
 		if b[v] then
 			continue
 		end
