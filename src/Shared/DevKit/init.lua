@@ -28,6 +28,7 @@ DevKit.Libraries = {
 	Ragdoll          = require(Libraries.Ragdoll),
 	RaycastFromMouse = require(Libraries.RaycastFromMouse),
 	SetOperations    = require(Libraries.SetOperations),
+	Connect          = require(Libraries.Connect),
 }
 -- stylua: ignore end
 
