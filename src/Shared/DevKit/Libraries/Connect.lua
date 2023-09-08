@@ -29,8 +29,10 @@ function Module.playerTouchEnded(part: BasePart, callback: (player: Player, char
 	return part.TouchEnded:Connect(onPlayerTouched(callback))
 end
 
-function Module.playerClicked(detector: ClickDetector, callback: (player: Player) -> ())
-	return detector.MouseClick:Connect(callback)
+function Module.playerClicked(instance: Instance, callback: (player: Player) -> ())
+	local detector = Instance.new("ClickDetector")
+	detector.Parent = instance
+	return detector, detector.MouseClick:Connect(callback)
 end
 
 function Module.tag<T>(tag: string, added: (T) -> (), removed: (T) -> ())
