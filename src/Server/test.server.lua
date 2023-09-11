@@ -61,11 +61,20 @@ local CS = game:GetService("CollectionService")
 -- 	end
 -- end
 
-local t = cupboard.wrap({ "jame", "dion", "chris", "adam" }, false, {
-	OnRemoved = function(_, k, v)
+local t = { "jame", "craig" }
+
+cupboard.wrap(t, true, {
+	onRemoved = function(_, k, v)
 		print("removed", k, v)
 	end,
-	OnInserted = function(_, k, v)
+	onInserted = function(_, k, v)
 		print("inserted", k, v)
 	end,
+	onReplaced = function(_, k, v)
+		print("replaced", k, v)
+	end,
 })
+
+t[1] = "dion"
+
+print(t)

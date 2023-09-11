@@ -19,11 +19,12 @@
     to minimize chances of the dev having name collisions however... If you're 
     casing your keys/variables like that on a regular basis, seek jesus :v
     
-    - _meta_data_   
-    - _On_Removed_ 
-    - _On_Inserted_
-    - _len_
-    - _actual_table_
+    - __metadata   
+    - __onRemoved 
+    - __onInserted
+	- __onInserted
+    - __size
+    - __actualTable
     
     
     Warning: a wrapped table is Incompatible with luau's table library DO NOT cross use them!
@@ -34,6 +35,9 @@ local function nop() end
 
 local cupboard = {}
 
+-- !== ================================================================================||>
+-- !== Proxy
+-- !== ================================================================================||>
 --[[
 	the proxyHandler is the star of the show, it's a metatable that allows me to
 	detect insertions/removals from a given wrapped table through the proxy pattern
@@ -52,17 +56,17 @@ local cupboard = {}
 local proxyHandler = {}
 
 proxyHandler.__index = function(t, k)
-	local actualTable = rawget(t, "_actual_table_")
+	local actualTable = rawget(t, "__actualTable")
 	return actualTable[k]
 end
 
 proxyHandler.__newindex = function(t, k, v)
-	local actualTable = rawget(t, "_actual_table_")
-	local metadata = rawget(t, "_meta_data_")
+	local actualTable = rawget(t, "__actualTable")
+	local metadata = rawget(t, "__metadata")
 
 	-- order matters, gotta catch callbacks first else they'll get
 	-- indexed to actualTable.
-	if k == "_On_Removed_" or k == "_On_Inserted_" and type(v) == "function" then
+	if k == "__onRemoved" or k == "__onInserted" or k == "__onReplaced" and type(v) == "function" then
 		assert(type(v) == "function", "Unable to assign callback " .. k .. " function expected got " .. typeof(v))
 		metadata[k] = v
 		return
@@ -70,103 +74,114 @@ proxyHandler.__newindex = function(t, k, v)
 	if actualTable[k] ~= nil and v == nil then
 		local oldVal = actualTable[k]
 		actualTable[k] = nil
-		metadata._len_ -= 1
-		metadata._On_Removed_(t, k, oldVal)
+		metadata.__size -= 1
+		metadata.__onRemoved(t, k, oldVal)
 		return
 	end
 
 	if actualTable[k] == nil then
 		actualTable[k] = v
-		metadata._len_ += 1
-		metadata._On_Inserted_(t, k, v)
+		metadata.__size += 1
+		metadata.__onInserted(t, k, v)
 		return
 	end
 
-	-- Not incrementing _len_ here cause it's a replacement case
+	-- Not incrementing __size here cause it's a replacement case
 	-- no "true" insertion occured
 	if actualTable[k] ~= nil and actualTable[k] ~= v then
 		actualTable[k] = v
-		metadata._On_Replaced_(t, k, v)
+		metadata.__onReplaced(t, k, v)
 		return
 	end
 end
 
 proxyHandler.__tostring = function(t)
-	local actualTable = rawget(t, "_actual_table_")
+	local actualTable = rawget(t, "__actualTable")
 	print(actualTable)
 	return ""
 end
 
 proxyHandler.__iter = function(t)
-	local actualTable = rawget(t, "_actual_table_")
+	local actualTable = rawget(t, "__actualTable")
 	return next, actualTable
 end
 
 proxyHandler.__len = function(t)
-	local metadata = rawget(t, "_meta_data_")
-	return metadata._len_
+	local metadata = rawget(t, "__metadata")
+	return metadata.__size
 end
 
+-- !== ================================================================================||>
+-- !== Library
+-- !== ================================================================================||>
 cupboard.wrap = function(
 	t: { [any]: any },
-	shouldFire: boolean,
+	shouldCallOnInserted: boolean, -- calls onInserted for each item in the given table
 	callbacks
 ): {
-	_OnRemoved_: (t, k, v) -> nil,
-	_OnInserted_: (t, k, v) -> nil,
+	__onRemoved: (t: { [any]: any }, k: any, v: any) -> nil,
+	__onInserted: (t: { [any]: any }, k: any, v: any) -> nil,
+	__onReplaced: (t: { [any]: any }, k: any, v: any) -> nil,
 }
+	-- Assertion pass to verify types.
+
 	assert(type(t) == "table", "bad argument t, it must be of type table!")
-	assert(type(shouldFire) == "boolean", "bad argument shouldFire, it must be of type boolean!")
+	assert(type(shouldCallOnInserted) == "boolean", "bad argument shouldFire, it must be of type boolean!")
 	assert(
 		type(callbacks) == "table" or type(callbacks) == "nil",
 		"bad argument onInserted, it must be of type table or nil!"
 	)
 
 	callbacks = callbacks or {}
+
 	assert(
-		type(callbacks.OnInserted) == "function" or type(callbacks.OnInserted) == "nil",
+		type(callbacks.onInserted) == "function" or type(callbacks.onInserted) == "nil",
 		"bad argument onInserted, it must be of type function!"
 	)
 
 	assert(
-		type(callbacks.OnRemoved) == "function" or type(callbacks.OnRemoved) == "nil",
+		type(callbacks.onRemoved) == "function" or type(callbacks.onRemoved) == "nil",
 		"bad argument OnRemoved, it must be of type function!"
 	)
 
 	assert(
-		type(callbacks.OnReplaced) == "function" or type(callbacks.OnReplaced) == "nil",
+		type(callbacks.onReplaced) == "function" or type(callbacks.OnReplaced) == "nil",
 		"bad argument OnReplaced, it must be of type function!"
 	)
 
-	-- important to not put the metadata table inside actualTable...
-	-- else it would be counted as an element of it!
-	local proxy = {
-		_actual_table_ = {},
+	-- stash all of the given t key value pairs in another table and delete them
+	-- from t, this is because t will now become an empty proxy for the metamethods
+	-- to fire on it, and easily allows to wrap an already existing table
+	local actualTable = {}
+	local initialTableSize = 0
 
-		_meta_data_ = {
-			_On_Removed_ = callbacks.OnRemoved or nop,
-			_On_Inserted_ = callbacks.OnInserted or nop,
-			_On_Replaced_ = callbacks.OnReplaced or nop,
-			_len_ = 0, --> optimization to track the lenght of the table, else inserting be borderline un-useable
-		},
+	for k, v in t do
+		actualTable[k] = v
+		initialTableSize += 1
+		t[k] = nil
+	end
+
+	-- make t a proxy and initialize the its metadata
+	t.__actualTable = actualTable
+	t.__metadata = { --> metadata's not inside actualTable so it's not counted as a value of it
+		__onRemoved = callbacks.onRemoved or nop,
+		__onInserted = callbacks.onInserted or nop,
+		__onReplaced = callbacks.onReplaced or nop,
+		__size = initialTableSize, --> optimization to track the size of the table, else inserting would be borderline un-useable
 	}
-	setmetatable(proxy, proxyHandler)
 
-	-- if it should call OnInserted callback or not when
-	-- inserting the contents of t. the callback it's called
-	-- through the proxy btw.
-	if shouldFire then
-		for k, v in t do
-			proxy[k] = v
-		end
-	else
-		for k, v in t do
-			proxy._meta_data_._len_ += 1
-			rawset(proxy._actual_table_, k, v)
+	setmetatable(t, proxyHandler)
+
+	-- this is done at this step for safety so any key, value from t can be
+	-- safely reached in the callback w/o it being nil cause it was not inserted
+	-- yet
+	if shouldCallOnInserted == true and callbacks.onInserted then
+		for k, v in actualTable do
+			callbacks.onInserted(t, k, v)
 		end
 	end
 
-	return proxy
+	return t
 end
 
 cupboard.insert = function(t: { [any]: any }, v: any, pos: number?)
@@ -176,18 +191,18 @@ cupboard.insert = function(t: { [any]: any }, v: any, pos: number?)
 	if pos then
 		-- Get the "true" table so we can bypass the metamethod calls, not doing
 		-- it would cause _on_inserted_ to be called every time a value is shifted
-		local actualTable = rawget(t, "_actual_table_")
-		local metadata = rawget(t, "_meta_data_")
+		local actualTable = rawget(t, "__actualTable")
+		local metadata = rawget(t, "__metadata")
 
 		-- right shift vals
-		for i = metadata._len_, pos, -1 do
+		for i = metadata.__size, pos, -1 do
 			actualTable[i + 1] = actualTable[i]
 		end
 
 		-- index the new value in the desired position using the given
 		-- table so _on_inserted_ is called.
 		t[pos] = v
-		metadata._len_ += 1
+		metadata.__size += 1
 	else
 		t[#t + 1] = v
 	end
@@ -196,9 +211,9 @@ end
 cupboard.remove = function(t, pos: any)
 	assert(type(t) == "table", "bad argument t, it must be of type table!")
 	assert(type(pos) == "number", "bad argument key, it must be of type number!")
-	local actualTable = rawget(t, "_actual_table_")
-	local metadata = rawget(t, "_meta_data_")
-	local len = metadata._len_
+	local actualTable = rawget(t, "__actualTable")
+	local metadata = rawget(t, "__metadata")
+	local len = metadata.__size
 
 	-- t[k] = nil leaves a gap in the table, which would break array functionality
 	-- so the values gotta be left shifted to fill the gap, also do this on the
@@ -212,11 +227,11 @@ cupboard.remove = function(t, pos: any)
 end
 
 cupboard.find = function(t, v, init: number?)
-	local actualTable = rawget(t, "_actual_table_")
-	local metadata = rawget(t, "_meta_data_")
+	local actualTable = rawget(t, "__actualTable")
+	local metadata = rawget(t, "__metadata")
 	init = init or 1
 	print(actualTable)
-	for i = init, metadata._len_ do
+	for i = init, metadata.__size do
 		if actualTable[i] == v then
 			return i
 		end
@@ -226,7 +241,7 @@ cupboard.find = function(t, v, init: number?)
 end
 
 cupboard.unwrap = function(t)
-	local actualTable = rawget(t, "_actual_table_")
+	local actualTable = rawget(t, "__actualTable")
 	setmetatable(t, nil)
 	t = nil
 	return actualTable
