@@ -1,7 +1,3 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Transforms = ReplicatedStorage.Transforms
-local Raycast = require(Transforms.Raycast)
-
 --[=[
 	@class Weld
 	Weld is a utility module for managing welds and motors between parts. This is the preferred way to connect parts together in the game.
@@ -70,33 +66,6 @@ function Module.toResult(weld: WeldConstraint, result: RaycastResult)
 	-- Weld to the instance
 	task.wait()
 	weld.Part1 = part1
-end
-
---[=[
-	@within Weld
-	Welds the given model to the "ground" below it through raycast
-]=]
-function Module.weldToGround(child: Model)
-	local primaryPart = child.PrimaryPart
-	local weld = primaryPart.WeldPrimaryPrimary
-
-	-- Raycast the map
-	local rayOrigin = primaryPart.Position
-	local rayDirection = Vector3.new(0, -10, 0)
-	local ignoreList = { child }
-
-	-- Find any part
-	local result = Raycast.instanceToPart(rayOrigin, rayDirection, ignoreList)
-	if not result then
-		return
-	end
-
-	local basePart = result.Instance
-	local model = basePart:FindFirstAncestorOfClass("Model")
-
-	if model then
-		weld.Part0 = basePart
-	end
 end
 
 --[=[

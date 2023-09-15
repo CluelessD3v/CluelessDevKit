@@ -29,6 +29,7 @@ DevKit.Libraries = {
 	RaycastFromMouse = require(Libraries.RaycastFromMouse),
 	SetOperations    = require(Libraries.SetOperations),
 	Connect          = require(Libraries.Connect),
+	Cupboard         = require(Libraries.Cupboard),
 }
 -- stylua: ignore end
 

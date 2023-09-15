@@ -4,6 +4,8 @@
 	Observable value utility for when you need to keep an eye on a value changing.
 ]]
 
+local Signal = require(script.Parent.Parent.Signal)
+
 -- !== ================================================================================||>
 -- !== Proxy
 -- !== ================================================================================||>
@@ -24,7 +26,7 @@ end
 
 proxy.__tostring = function(t:  {_store: Observable})
 	local self: Observable = rawget(t, "_store")
-	local msg = "Value: " .. self.Value 
+	local msg = "Value: " .. tostring(self.Value) 
 	return msg
 end
 
@@ -53,20 +55,13 @@ export type Observable = {
 }
 
 
-local warnMsg =
-	"No signal dependency detected, The module will not be useable until its signal dependency is set: Observable.Signal = YourSignalLibrary"
-
 local Observable = {}
-Observable.Signal = nil
 
 function Observable.new(initialValue: any): Observable
-	if not Observable.Signal then
-		warn(warnMsg)
-	end
 
 	local self = {}
 	self.Value = initialValue
-	self.Changed = Observable.Signal.new()
+	self.Changed = Signal.new()
 	return setmetatable({ _store = self }, proxy)
 end
 

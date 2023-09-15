@@ -4,9 +4,7 @@
 	litter your codebase with clamped values
 ]=]
 
-
-local warnMsg =
-	"No signal dependency detected, The module will not be useable until its signal dependency is set: ClampedNumer.Signal = YourSignalLibrary"
+local Signal = require(script.Parent.Parent.Signal)
 
 -- !== ================================================================================||>
 -- !== Proxy
@@ -24,6 +22,7 @@ proxy.__newindex = function(t: {_store: ClampedNumber}, key, value: number)
 	if key == "Value" then
 		self[key] = math.clamp(value, self.Min, self.Max)
 		self.Changed:Fire(self.Value)
+		self.PropertyChanged:Fire(key, value)
 		
 		if self.Value >= self.Max then
 			self.MaxReached:Fire()
@@ -31,18 +30,18 @@ proxy.__newindex = function(t: {_store: ClampedNumber}, key, value: number)
 			self.MinReached:Fire()
 		end
 	
-	--[[
-		Prevents Min and Max from ever surpassing each other, cause yah! Min should
-		not ever be bigger than max, and vice versa! 
-	]]
+		--# Prevents Min and Max from ever surpassing each other, cause yah! Min should
+		--# not ever be bigger than max, and vice versa! 
 	elseif key == "Min" then
 		if value < self.Max then
 			self.Min = value
+			self.PropertyChanged:Fire(key, value)
 		end
 	
 	elseif key == "Max" then
 		if value > self.Min then
 			self.Max = value
+			self.PropertyChanged:Fire(key, value)
 		end
 	end
 end
@@ -76,12 +75,13 @@ type Signal<U...> = {
 
 
 export type ClampedNumber = {
-	Value      : number,
-	Max        : number,
-	Min        : number,
-	Changed    : Signal<number>,
-	MinReached : Signal<unknown>,
-	MaxReached : Signal<unknown>,
+	Value          : number,
+	Max            : number,
+	Min            : number,
+	Changed        : Signal<number>,
+	MinReached     : Signal<unknown>,
+	MaxReached     : Signal<unknown>,
+	PropertyChanged: Signal<unknown>
 }
 
 
@@ -91,20 +91,17 @@ ClampedNumber.Signal = nil
 ClampedNumber.new = function(initialValue: number, minValue: number, maxValue: number): ClampedNumber 
 	--//TODO make a case to check that the arguments were passed
 	--//TODO make a case to check that the arguments are of the correct type
-	if not ClampedNumber.Signal then
-		warn(warnMsg)
-	end
-
 
 	local self = {}
 	-- Prevent min from being bigger than max and vice versa at creation by
 	-- swapping them
-	self.Min        = math.min(minValue, maxValue) 
-	self.Max        = math.max(minValue, maxValue)
-	self.Value      = math.clamp(initialValue, self.Min, self.Max)
-	self.Changed    = ClampedNumber.Signal.new()
-	self.MinReached = ClampedNumber.Signal.new()
-	self.MaxReached = ClampedNumber.Signal.new()
+	self.Min             = math.min(minValue, maxValue)
+	self.Max             = math.max(minValue, maxValue)
+	self.Value           = math.clamp(initialValue, self.Min, self.Max)
+	self.Changed         = Signal.new()
+	self.PropertyChanged = Signal.new()
+	self.MinReached      = Signal.new()
+	self.MaxReached      = Signal.new()
 
 	return setmetatable({ _store = self }, proxy)
 end
