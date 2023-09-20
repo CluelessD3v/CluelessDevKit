@@ -58,7 +58,6 @@ export type Observable = {
 local Observable = {}
 
 function Observable.new(initialValue: any): Observable
-
 	local self = {}
 	self.Value = initialValue
 	self.Changed = Signal.new()

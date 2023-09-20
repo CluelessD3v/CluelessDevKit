@@ -86,7 +86,6 @@ export type ClampedNumber = {
 
 
 local ClampedNumber = {}
-ClampedNumber.Signal = nil
 
 ClampedNumber.new = function(initialValue: number, minValue: number, maxValue: number): ClampedNumber 
 	--//TODO make a case to check that the arguments were passed
