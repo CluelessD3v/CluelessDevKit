@@ -22,7 +22,7 @@
     - __metadata   
     - __onRemoved 
     - __onInserted
-	- __onInserted
+	- __onReplaced
     - __size
     - __actualTable
     
@@ -63,7 +63,7 @@ end
 proxyHandler.__newindex = function(t, k, v)
 	local actualTable = rawget(t, "__actualTable")
 	local metadata = rawget(t, "__metadata")
-
+	
 	-- order matters, gotta catch callbacks first else they'll get
 	-- indexed to actualTable.
 	if k == "__onRemoved" or k == "__onInserted" or k == "__onReplaced" and type(v) == "function" then
@@ -71,6 +71,7 @@ proxyHandler.__newindex = function(t, k, v)
 		metadata[k] = v
 		return
 	end
+
 	if actualTable[k] ~= nil and v == nil then
 		local oldVal = actualTable[k]
 		actualTable[k] = nil
@@ -122,7 +123,7 @@ cupboard.wrap = function(
 	__onRemoved: (t: { [any]: any }, k: any, v: any) -> nil,
 	__onInserted: (t: { [any]: any }, k: any, v: any) -> nil,
 	__onReplaced: (t: { [any]: any }, k: any, v: any) -> nil,
-}
+	}
 	-- Assertion pass to verify types.
 
 	assert(type(t) == "table", "bad argument t, it must be of type table!")
@@ -244,6 +245,51 @@ cupboard.unwrap = function(t)
 	setmetatable(t, nil)
 	t = nil
 	return actualTable
+end
+
+
+--[[
+
+ Sets a callback for metadata in a cupboard.
+
+ This function allows you to set a callback for a specific metadata event in a
+ cupboard table. It transforms the input `name` into the appropriate callback format,
+ whether it includes the "on" prefix or is in camelCase, and assigns the provided
+ `callback` to the corresponding field in the metadata table.
+ 
+ so any of these inputs are valid:
+	- onInserted
+	- OnInserted
+	- Inserted
+	- inserted
+
+which applies the same for the other callbacks
+]]
+cupboard.setCallback = function(t: {[any]: any}, name: string, callback: (t: {[any]: any}, key: any, value: any) -> nil)
+	local metadata = rawget(t, "__metadata")
+	
+	-- Convert the input name to PascalCase
+	local formattedName = name:gsub("^%l", string.upper)
+
+	
+	-- Remove trailing underscores
+	local formattedName = name:gsub("^%l", string.upper)
+
+	-- Check if the name starts with "on" and remove it
+	if formattedName:sub(1, 2) == "On" then
+		formattedName = formattedName:sub(3)
+	end
+
+	-- Append "__on" to the formatted name
+	local callbackName = "__on" .. formattedName
+	
+	if metadata[callbackName] then
+		metadata[callbackName] = callback
+	else
+		error(name.." is not a valid callback name, callback names are: Removed, Inserted, Replaced.")
+	end
+	-- Set the callback in the metadata table
+	metadata[callbackName] = callback
 end
 
 return cupboard
