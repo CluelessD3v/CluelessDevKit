@@ -1,0 +1,7 @@
+## Sorbet
+- Add To and From states arguments to state callbacks to know were the fuck you're coming from.
+- Fix Add State if statement
+
+
+## SetOps
+- fix array union being for dictionaries
